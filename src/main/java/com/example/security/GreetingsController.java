@@ -11,3 +11,5 @@ public class GreetingsController {
         return "Hello world!";
     }
 }
+
+// default behaviour of Spring security: redirects to /login.
