@@ -15,11 +15,13 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests((requests) -> requests.anyRequest().authenticated());        // authenticate every request
-//        http.formLogin(withDefaults());
-        http.httpBasic(withDefaults());     // using basic authentication with default settings
+        http.formLogin(withDefaults());
+//        http.httpBasic(withDefaults());     // using basic authentication with default settings
         return http.build();
     }
 }
 
-// instead of a form, the basic authentication opens an alert box, and we can't access "/logout".
+// instead of a form, the basic authentication opens an alert box, and we can't access "/logout" and "/login"
 // to logout, we just have to close the session
+// in basic authentication, session is being managed by cookies
+// in form based authentication, paylod tab contains the login credentials entered by user to authenticate
