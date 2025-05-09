@@ -1,5 +1,6 @@
 package com.example.security;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -10,6 +11,20 @@ public class GreetingsController {
     public String helloWorld() {
         return "Hello world!";
     }
+
+    @PreAuthorize("hasRole('USER')")     // telling spring that only users with specific roles can access this endpoint
+    @GetMapping("/user")
+    public String userEndPoint() {
+        return "Hello user!";
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin")
+    public String adminEndpoint() {
+        return "Hello admin!";
+    }
+
+
 }
 
 // default behaviour of Spring security: redirects to /login after accessing any end point (like here "/hello")
