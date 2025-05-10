@@ -12,6 +12,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
@@ -46,11 +48,11 @@ public class SecurityConfig {
 //    creating in-memory authentication
     public UserDetailsService userDetailsService() {
         UserDetails user1 = User.withUsername("user1")
-                .password("{noop}password1")    // this prefix is added to tell spring, to store this password as plain text
+                .password(passwordEncoder().encode("password1"))    // {noop} prefix is added to tell spring, that no encoding is being done to the password
                 .roles("USER")
                 .build();
         UserDetails admin = User.withUsername("admin")
-                .password("{noop}admin123")    // this prefix is added to tell spring, to store this password as plain text
+                .password(passwordEncoder().encode("{noop}admin123"))    // this prefix is added to tell spring, to store this password as plain text
                 .roles("ADMIN")
                 .build();
 
@@ -61,7 +63,11 @@ public class SecurityConfig {
 
         return userDetailsManager;      // making the data to be saved in
 //        return new InMemoryUserDetailsManager(user1, admin);
+    }
 
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();     // Bcrypt algo uses "salting" for encoding, it takes a random string called "salt" and concat it with raw password, then entire string is encoded adding two layers of security
     }
 }
 
