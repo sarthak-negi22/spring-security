@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,12 +23,15 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests((requests) -> requests.anyRequest().authenticated());        // authenticate every request
+        http.authorizeHttpRequests((requests) -> requests.requestMatchers("/h2-console/**").permitAll()     // allows unauthenticated access to h2 console
+                     .anyRequest().authenticated());        // authenticate every request
 
 //        making the http request stateless (no cookies maintained)
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 //        http.formLogin(withDefaults());
         http.httpBasic(withDefaults());     // using basic authentication with default settings
+        http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin));        // allows h2 console to be displayed in a frame from the same origin
+        http.csrf(AbstractHttpConfigurer::disable);     //disabled CSRF protection for testing h2-database
         return http.build();
     }
 
