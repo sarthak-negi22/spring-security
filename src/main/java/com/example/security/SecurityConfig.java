@@ -3,6 +3,7 @@ package com.example.security;
 import com.example.security.jwt.AuthEntryPointJwt;
 import com.example.security.jwt.AuthTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -46,7 +47,7 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests((authorizedRequests) -> authorizedRequests.requestMatchers("/h2-console/**").permitAll()     // allows unauthenticated access to h2 console
-                .requestMatchers("/api/signin").permitAll()     // opening the access to signin
+                .requestMatchers("/signin").permitAll()     // opening the access to signin
                 .anyRequest().authenticated());        // authenticate every request
 
 //        making the http request stateless (no cookies maintained)
@@ -64,24 +65,28 @@ public class SecurityConfig {
     }
 
     @Bean
-//    creating in-memory authentication
-    public UserDetailsService userDetailsService() {
-        UserDetails user1 = User.withUsername("user1")
-                .password(passwordEncoder().encode("password1"))    // {noop} prefix is added to tell spring, that no encoding is being done to the password
-                .roles("USER")
-                .build();
-        UserDetails admin = User.withUsername("admin")
-                .password(passwordEncoder().encode("{noop}admin123"))    // this prefix is added to tell spring, to store this password as plain text
-                .roles("ADMIN")
-                .build();
+    public UserDetailsService userDetailsService(DataSource dataSource) {
+        return new JdbcUserDetailsManager(dataSource);
+    }
 
-        JdbcUserDetailsManager userDetailsManager = new JdbcUserDetailsManager(dataSource);
+    @Bean
+    public CommandLineRunner initData(UserDetailsService userDetailsService) {
+        return args -> {
+            JdbcUserDetailsManager manager = (JdbcUserDetailsManager) userDetailsService;
+            UserDetails user1 = User.withUsername("user1")
+                    .password(passwordEncoder().encode("password1"))
+                    .roles("USER")
+                    .build();
+            UserDetails admin = User.withUsername("admin")
+                    //.password(passwordEncoder().encode("adminPass"))
+                    .password(passwordEncoder().encode("adminPass"))
+                    .roles("ADMIN")
+                    .build();
 
-        userDetailsManager.createUser(user1);
-        userDetailsManager.createUser(admin);
-
-        return userDetailsManager;      // making the data to be saved in
-//        return new InMemoryUserDetailsManager(user1, admin);
+            JdbcUserDetailsManager userDetailsManager = new JdbcUserDetailsManager(dataSource);
+            userDetailsManager.createUser(user1);
+            userDetailsManager.createUser(admin);
+        };
     }
 
     @Bean
